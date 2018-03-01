@@ -1,0 +1,4 @@
+JWTSecret="hash_value"
+MongoServer="localhost"
+MongoDatabase="spinitem"
+PublicDir="./public/"
