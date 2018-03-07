@@ -97,7 +97,7 @@ var Login http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get JWT Token
-	token, err := getToken(user.User)
+	token, err := getToken(existedUser.User)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return

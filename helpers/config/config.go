@@ -16,6 +16,7 @@ type Config struct {
 	MongoServer   string
 	MongoDatabase string
 	PublicDir     string
+	StaticURL     string
 }
 
 var instance *Config

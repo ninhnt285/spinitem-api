@@ -16,6 +16,9 @@ func main() {
 
 	router := mux.NewRouter()
 	router.NotFoundHandler = handlers.NotFoundHandler
+	// File handlers
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./public/"))))
+	// Auth handlers
 	router.Handle("/login", handlers.Login).Methods("POST")
 	router.Handle("/register", handlers.Register).Methods("POST")
 	// User handlers
@@ -23,19 +26,15 @@ func main() {
 	// Item handlers
 	router.Handle("/items", handlers.Adapt(handlers.Auth, handlers.AddItem)).Methods("POST")
 	router.Handle("/items", handlers.Adapt(handlers.Auth, handlers.GetAllItems)).Methods("GET")
-	router.Handle("/items/{id}", handlers.Adapt(handlers.Auth, handlers.GetItem)).Methods("GET")
-	router.Handle("/items/{id}", handlers.Adapt(NotImplemented)).Methods("PUT")    // NotImplement
-	router.Handle("/items/{id}", handlers.Adapt(NotImplemented)).Methods("DELETE") // NotImplement
+	router.Handle("/items/{id}", handlers.GetItem).Methods("GET")
+	router.Handle("/items/{id}", handlers.Adapt(handlers.Auth, handlers.UpdateItem)).Methods("PUT")
+	router.Handle("/items/{id}", handlers.Adapt(handlers.Auth, handlers.DeleteItem)).Methods("DELETE")
 	// Image handlers
+	router.Handle("/images", handlers.GetAllImages).Methods("GET")
 	router.Handle("/images/upload", handlers.Adapt(handlers.Auth, handlers.UploadImage)).Methods("POST")
 	router.Handle("/images", handlers.Adapt(handlers.Auth, handlers.AddImage)).Methods("POST")
 	// Test handlers
-	router.Handle("/test", NotImplemented).Methods("GET")
+	router.Handle("/test", handlers.NotImplemented).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8000", router))
-}
-
-// NotImplemented is dummy func for API Methods
-var NotImplemented http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Not Implemented"))
 }

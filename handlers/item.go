@@ -65,5 +65,77 @@ var GetAllItems http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) 
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	respondWithJSON(w, http.StatusOK, items)
+	respondWithJSON(w, http.StatusOK, map[string][]itemModel.Item{"items": items})
+}
+
+// UpdateItem handle PUT /items/{id}
+var UpdateItem http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	var err error
+	// Get userId
+	userID, err := getUserID(r)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Can not get access")
+		return
+	}
+	// Get itemId
+	params := mux.Vars(r)
+	itemID := params["id"]
+	item, err := itemModel.GetByID(itemID)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	// Check owner permission
+	if item.UserID != bson.ObjectIdHex(userID) {
+		respondWithError(w, http.StatusUnauthorized, "Can not get access")
+		return
+	}
+	// Parse item from JSON
+	var updateItem itemModel.Item
+	if err := json.NewDecoder(r.Body).Decode(&updateItem); err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	// Update item
+	err = item.Update(updateItem)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, item)
+}
+
+// DeleteItem in DB
+var DeleteItem http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	var err error
+	// Get userId
+	userID, err := getUserID(r)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Can not get access")
+		return
+	}
+	// Get Item
+	params := mux.Vars(r)
+	itemID := params["id"]
+	item, err := itemModel.GetByID(itemID)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	// Check owner permission
+	if item.UserID != bson.ObjectIdHex(userID) {
+		respondWithError(w, http.StatusUnauthorized, "Can not get access")
+		return
+	}
+	// Delete item
+	err = item.Delete()
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, item)
 }

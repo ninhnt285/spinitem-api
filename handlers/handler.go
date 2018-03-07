@@ -65,6 +65,11 @@ func getUserID(r *http.Request) (string, error) {
 	return userID, nil
 }
 
+// NotImplemented is dummy func for API Methods
+var NotImplemented http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Not Implemented"))
+}
+
 // NotFoundHandler handle 404 request
 var NotFoundHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 	respondWithError(w, http.StatusBadRequest, "Bad Request")

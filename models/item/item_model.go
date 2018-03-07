@@ -2,20 +2,23 @@ package item
 
 import (
 	"errors"
+	"reflect"
 
 	"gopkg.in/mgo.v2/bson"
 
 	"../../helpers/config"
 	"../../models"
+	imageModel "../image"
 )
 
 // Item includes info and all images data
 type Item struct {
-	ID       bson.ObjectId   `bson:"_id" json:"id"`
-	UserID   bson.ObjectId   `bson:"user_id" json:"user_id"`
-	Title    string          `bson:"title" json:"title"`
-	IsActive bool            `bson:"is_active" json:"is_active"`
-	ImageIds []bson.ObjectId `bson:"images" json:"images"`
+	ID            bson.ObjectId   `bson:"_id" json:"id"`
+	UserID        bson.ObjectId   `bson:"user_id" json:"user_id"`
+	Title         string          `bson:"title" json:"title"`
+	IsActive      bool            `bson:"is_active" json:"is_active"`
+	BackgroundURL string          `bson:"background_url" json:"background_url"`
+	ImageIds      []bson.ObjectId `bson:"images" json:"images"`
 }
 
 const (
@@ -39,22 +42,52 @@ func (item *Item) Add() error {
 }
 
 // Update an existed item
-func (item *Item) Update() error {
+func (item *Item) Update(updateItem Item) error {
 	dbSession := models.Session.Clone()
 	defer dbSession.Close()
-
 	conf := config.GetInstance()
 	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
+	// Compare values
+	if updateItem.Title != "" {
+		item.Title = updateItem.Title
+	}
+	if updateItem.IsActive != item.IsActive {
+		item.IsActive = updateItem.IsActive
+	}
+	if updateItem.BackgroundURL != item.BackgroundURL {
+		item.BackgroundURL = updateItem.BackgroundURL
+	}
+	if (updateItem.ImageIds != nil) && (!reflect.DeepEqual(item.ImageIds, updateItem.ImageIds)) {
+		item.ImageIds = updateItem.ImageIds
+	}
 	// Update item
 	err := coll.UpdateId(item.ID, &item)
 	return err
+}
+
+// Delete item by id
+func (item *Item) Delete() error {
+	dbSession := models.Session.Clone()
+	defer dbSession.Close()
+	conf := config.GetInstance()
+	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
+	// Remove all images first
+	images, err := imageModel.GetAllImages(item.ID.Hex())
+	for _, image := range images {
+		image.Delete()
+	}
+	// Remove item from DB
+	err = coll.RemoveId(item.ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetByID get an item by id
 func GetByID(id string) (*Item, error) {
 	dbSession := models.Session.Clone()
 	defer dbSession.Close()
-
 	conf := config.GetInstance()
 	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
 	// Convert id to bson.ObjectId
@@ -75,7 +108,6 @@ func GetByID(id string) (*Item, error) {
 func GetAll(userID string) ([]Item, error) {
 	dbSession := models.Session.Clone()
 	defer dbSession.Close()
-
 	conf := config.GetInstance()
 	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
 	// Convert id to bson.ObjectId
@@ -86,24 +118,4 @@ func GetAll(userID string) ([]Item, error) {
 	var items []Item
 	err := coll.Find(bson.M{"user_id": bsonUserID}).All(&items)
 	return items, err
-}
-
-// Delete item by id
-func Delete(id string) error {
-	dbSession := models.Session.Clone()
-	defer dbSession.Close()
-
-	conf := config.GetInstance()
-	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
-	// Convert id to bson.ObjectId
-	if !bson.IsObjectIdHex(id) {
-		return errors.New("Item ID is invalid")
-	}
-	itemID := bson.ObjectIdHex(id)
-	// Remove item from DB
-	err := coll.RemoveId(itemID)
-	if err != nil {
-		return err
-	}
-	return nil
 }
