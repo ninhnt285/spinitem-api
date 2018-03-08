@@ -4,28 +4,33 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"time"
-
-	"gopkg.in/h2non/bimg.v1"
 
 	"github.com/rs/xid"
 
 	"../../helpers/config"
 )
 
+type resizeOption struct {
+	Width  int
+	Height int
+	Crop   bool
+}
+
 var (
-	imgOptions = []bimg.Options{
+	imgOptions = []resizeOption{
 		// Square images
-		bimg.Options{Width: 50, Height: 50, Crop: true},
-		bimg.Options{Width: 100, Height: 100, Crop: true},
-		bimg.Options{Width: 150, Height: 150, Crop: true},
-		bimg.Options{Width: 500, Height: 500, Crop: true},
+		resizeOption{Width: 50, Height: 50, Crop: true},
+		resizeOption{Width: 100, Height: 100, Crop: true},
+		resizeOption{Width: 150, Height: 150, Crop: true},
+		resizeOption{Width: 500, Height: 500, Crop: true},
 		// Resize images
-		bimg.Options{Width: 500, Height: 500, Enlarge: true},
-		bimg.Options{Width: 750, Height: 750, Enlarge: true},
-		bimg.Options{Width: 1000, Height: 1000, Enlarge: true}}
+		resizeOption{Width: 500, Height: 500},
+		resizeOption{Width: 750, Height: 750},
+		resizeOption{Width: 1000, Height: 1000}}
 )
 
 // UploadFile save file info
@@ -77,24 +82,32 @@ func (uf *UploadFile) Add(r *http.Request, fileDir string) error {
 
 func resizeImages(dir string, filename string, ext string) {
 	for _, option := range imgOptions {
-		resizeImage(dir, filename, ext, option)
+		go resizeImage(dir, filename, ext, option)
 	}
 }
 
-func resizeImage(dir string, filename string, ext string, option bimg.Options) error {
-	// Read Image
-	buffer, err := bimg.Read(dir + filename + ext)
-	if err != nil {
-		return err
-	}
+func resizeImage(dir string, filename string, ext string, option resizeOption) error {
 	// Generate new filename
 	suffix := "_" + strconv.Itoa(option.Width) + "x" + strconv.Itoa(option.Height)
 	if option.Crop {
 		suffix += "_square"
 	}
-	var newImageName = dir + filename + suffix + ext
-	// Resize Image
-	newImage, err := bimg.NewImage(buffer).Process(option)
-	bimg.Write(newImageName, newImage)
-	return err
+	// var newImageName = dir + filename + suffix + ext
+	// Generate command
+	var args = []string{
+		dir + filename + ext,
+		"--size", strconv.Itoa(option.Width) + "x" + strconv.Itoa(option.Height),
+		"--output", filename + suffix + ext,
+	}
+
+	if option.Crop {
+		args = append(args, "--crop")
+	}
+
+	path, err := exec.LookPath("vipsthumbnail")
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command(path, args...)
+	return cmd.Run()
 }
