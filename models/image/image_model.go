@@ -2,7 +2,9 @@ package image
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"strconv"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -53,10 +55,17 @@ func (image *Image) Delete() error {
 	defer dbSession.Close()
 	conf := config.GetInstance()
 	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
-	// TODO: Remove file in server
-	err := os.Remove(conf.PublicDir + image.Destination)
+	// Remove files in server
+	os.Remove(conf.PublicDir + fmt.Sprintf(image.Destination, ""))
+	for _, option := range uf.ImgOptions {
+		suffix := "_" + strconv.Itoa(option.Width) + "x" + strconv.Itoa(option.Height)
+		if option.Crop {
+			suffix += "_square"
+		}
+		os.Remove(conf.PublicDir + fmt.Sprintf(image.Destination, suffix))
+	}
 	// Delete Image from DB
-	err = coll.RemoveId(image.ID)
+	err := coll.RemoveId(image.ID)
 	if err != nil {
 		return err
 	}

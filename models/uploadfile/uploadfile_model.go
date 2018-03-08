@@ -1,6 +1,7 @@
 package uploadfile
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -14,23 +15,25 @@ import (
 	"../../helpers/config"
 )
 
-type resizeOption struct {
+// ResizeOption save option of resize process
+type ResizeOption struct {
 	Width  int
 	Height int
 	Crop   bool
 }
 
 var (
-	imgOptions = []resizeOption{
+	// ImgOptions save info of all image sizes
+	ImgOptions = []ResizeOption{
 		// Square images
-		resizeOption{Width: 50, Height: 50, Crop: true},
-		resizeOption{Width: 100, Height: 100, Crop: true},
-		resizeOption{Width: 150, Height: 150, Crop: true},
-		resizeOption{Width: 500, Height: 500, Crop: true},
+		ResizeOption{Width: 50, Height: 50, Crop: true},
+		ResizeOption{Width: 100, Height: 100, Crop: true},
+		ResizeOption{Width: 150, Height: 150, Crop: true},
+		ResizeOption{Width: 500, Height: 500, Crop: true},
 		// Resize images
-		resizeOption{Width: 500, Height: 500},
-		resizeOption{Width: 750, Height: 750},
-		resizeOption{Width: 1000, Height: 1000}}
+		ResizeOption{Width: 500, Height: 500},
+		ResizeOption{Width: 750, Height: 750},
+		ResizeOption{Width: 1000, Height: 1000}}
 )
 
 // UploadFile save file info
@@ -81,33 +84,37 @@ func (uf *UploadFile) Add(r *http.Request, fileDir string) error {
 }
 
 func resizeImages(dir string, filename string, ext string) {
-	for _, option := range imgOptions {
+	for _, option := range ImgOptions {
 		go resizeImage(dir, filename, ext, option)
 	}
 }
 
-func resizeImage(dir string, filename string, ext string, option resizeOption) error {
+func resizeImage(dir string, filename string, ext string, option ResizeOption) error {
 	// Generate new filename
 	suffix := "_" + strconv.Itoa(option.Width) + "x" + strconv.Itoa(option.Height)
 	if option.Crop {
 		suffix += "_square"
 	}
-	// var newImageName = dir + filename + suffix + ext
 	// Generate command
 	var args = []string{
 		dir + filename + ext,
 		"--size", strconv.Itoa(option.Width) + "x" + strconv.Itoa(option.Height),
 		"--output", filename + suffix + ext,
 	}
-
 	if option.Crop {
 		args = append(args, "--crop")
 	}
 
 	path, err := exec.LookPath("vipsthumbnail")
 	if err != nil {
+		fmt.Println(err.Error())
 		return err
 	}
 	cmd := exec.Command(path, args...)
-	return cmd.Run()
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	return err
 }
