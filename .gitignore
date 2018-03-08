@@ -1,5 +1,5 @@
 spinitem
-public/*
 !public/index.html
+public/images/*
 !public/images/index.html
 settings/config.toml

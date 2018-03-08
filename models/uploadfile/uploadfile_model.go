@@ -35,7 +35,7 @@ func (uf *UploadFile) Add(r *http.Request, fileDir string) error {
 	ext := filepath.Ext(handler.Filename)
 	destinationDir := fileDir +
 		strconv.Itoa(currentTime.Year()) + "/" +
-		strconv.Itoa(int(currentTime.Month())+1) + "/" +
+		strconv.Itoa(int(currentTime.Month())) + "/" +
 		strconv.Itoa(currentTime.Day()) + "/"
 	fileName := xid.New().String() + ext
 
