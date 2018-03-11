@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	goHandlers "github.com/gorilla/handlers"
+
 	"github.com/gorilla/mux"
 
 	"./handlers"
@@ -36,5 +38,9 @@ func main() {
 	// Test handlers
 	router.Handle("/test", handlers.NotImplemented).Methods("GET")
 
-	log.Fatal(http.ListenAndServe(":8000", router))
+	headersOk := goHandlers.AllowedHeaders([]string{"X-Requested-With"})
+	originsOk := goHandlers.AllowedOrigins([]string{"*"})
+	methodsOk := goHandlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
+
+	log.Fatal(http.ListenAndServe(":8000", goHandlers.CORS(originsOk, headersOk, methodsOk)(router)))
 }
