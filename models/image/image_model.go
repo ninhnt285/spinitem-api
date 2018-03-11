@@ -57,6 +57,7 @@ func (image *Image) Delete() error {
 	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
 	// Remove files in server
 	os.Remove(conf.PublicDir + fmt.Sprintf(image.Destination, ""))
+	os.Remove(conf.PublicDir + fmt.Sprintf(image.Destination, "_origin"))
 	for _, option := range uf.ImgOptions {
 		suffix := "_" + strconv.Itoa(option.Width) + "x" + strconv.Itoa(option.Height)
 		if option.Crop {
