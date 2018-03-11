@@ -1,7 +1,6 @@
 package uploadfile
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -79,7 +78,6 @@ func (uf *UploadFile) Add(r *http.Request, fileDir string) error {
 	}
 	// Resize images
 	rotateImage(cf.PublicDir+destinationDir+fileName+"_origin"+ext, cf.PublicDir+destinationDir+fileName+ext)
-	fmt.Println("2")
 	resizeImages(cf.PublicDir+destinationDir, fileName, ext)
 
 	return nil
@@ -108,7 +106,6 @@ func rotateImage(originFile string, newFile string) error {
 	}
 	cmd := exec.Command(path, args...)
 	err = cmd.Run()
-	fmt.Println("1")
 	if err != nil {
 		return err
 	}
@@ -116,7 +113,6 @@ func rotateImage(originFile string, newFile string) error {
 }
 
 func resizeImages(dir string, filename string, ext string) {
-	fmt.Println("3")
 	for _, option := range ImgOptions {
 		go resizeImage(dir, filename, ext, option)
 	}
