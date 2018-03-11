@@ -1,7 +1,6 @@
 package uploadfile
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -67,7 +66,7 @@ func (uf *UploadFile) Add(r *http.Request, fileDir string) error {
 	uf.Size = handler.Size
 	// Create directory tree
 	os.MkdirAll(cf.PublicDir+destinationDir, 0755)
-	f, err := os.OpenFile(cf.PublicDir+destinationDir+fileName+ext, os.O_WRONLY|os.O_CREATE, 0666)
+	f, err := os.OpenFile(cf.PublicDir+destinationDir+fileName+"_origin"+ext, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
@@ -78,9 +77,29 @@ func (uf *UploadFile) Add(r *http.Request, fileDir string) error {
 		return err
 	}
 	// Resize images
+	rotateImage(cf.PublicDir+destinationDir+fileName+"_origin"+ext, cf.PublicDir+destinationDir+fileName+ext)
 	resizeImages(cf.PublicDir+destinationDir, fileName, ext)
 
 	return nil
+}
+
+func rotateImage(originFile string, newFile string) error {
+	var args = []string{
+		"autorot",
+		originFile,
+		newFile,
+	}
+
+	path, err := exec.LookPath("vips")
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command(path, args...)
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 func resizeImages(dir string, filename string, ext string) {
@@ -107,13 +126,11 @@ func resizeImage(dir string, filename string, ext string, option ResizeOption) e
 
 	path, err := exec.LookPath("vipsthumbnail")
 	if err != nil {
-		fmt.Println(err.Error())
 		return err
 	}
 	cmd := exec.Command(path, args...)
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(err.Error())
 		return err
 	}
 	return err
