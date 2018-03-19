@@ -40,7 +40,7 @@ func main() {
 
 	headersOk := goHandlers.AllowedHeaders([]string{"X-Requested-With"})
 	originsOk := goHandlers.AllowedOrigins([]string{"*"})
-	methodsOk := goHandlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
+	methodsOk := goHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
 
 	log.Fatal(http.ListenAndServe(":8000", goHandlers.CORS(originsOk, headersOk, methodsOk)(router)))
 }
