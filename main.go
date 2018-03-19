@@ -38,7 +38,7 @@ func main() {
 	// Test handlers
 	router.Handle("/test", handlers.NotImplemented).Methods("GET")
 
-	headersOk := goHandlers.AllowedHeaders([]string{"X-Requested-With"})
+	headersOk := goHandlers.AllowedHeaders([]string{"Authorization", "Content-Type"})
 	originsOk := goHandlers.AllowedOrigins([]string{"*"})
 	methodsOk := goHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
 
