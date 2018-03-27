@@ -19,8 +19,10 @@ import (
 func getToken(user userModel.User) (string, error) {
 	cf := config.GetInstance()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.ID,
-		"exp":     time.Now().Unix() + 30*24*3600})
+		"user_id":  user.ID,
+		"username": user.Username,
+		"fullname": user.Fullname,
+		"exp":      time.Now().Unix() + 30*24*3600})
 	tokenString, err := token.SignedString([]byte(cf.JWTSecret))
 	if err != nil {
 		return "", err

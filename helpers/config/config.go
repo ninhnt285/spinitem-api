@@ -12,11 +12,13 @@ import (
 
 // Config represents database server and credentials
 type Config struct {
-	JWTSecret     string
-	MongoServer   string
-	MongoDatabase string
-	PublicDir     string
-	StaticURL     string
+	JWTSecret           string
+	MongoServer         string
+	MongoDatabase       string
+	PublicDir           string
+	StaticURL           string
+	ShopifyAPIKey       string
+	ShopifyAPISecretKey string
 }
 
 var instance *Config

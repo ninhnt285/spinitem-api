@@ -15,6 +15,7 @@ type User struct {
 	ID       bson.ObjectId `bson:"_id,omitempty" json:"id"`
 	Username string        `bson:"username" json:"username"`
 	Email    string        `bson:"email" json:"email"`
+	Fullname string        `bson:"fullname" json:"fullname"`
 }
 
 // UserFull includes private params

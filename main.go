@@ -25,6 +25,10 @@ func main() {
 	router.Handle("/register", handlers.Register).Methods("POST")
 	// User handlers
 	router.Handle("/users/{id}", handlers.Adapt(handlers.Auth, handlers.GetUser)).Methods("GET")
+	// Shop handlers
+	router.Handle("/shops", handlers.Adapt(handlers.Auth, handlers.GetAllShops)).Methods("GET")
+	router.Handle("/shops", handlers.Adapt(handlers.Auth, handlers.AddShop)).Methods("POST")
+	router.Handle("/shops/verify/{platform}", handlers.Adapt(handlers.Auth, handlers.VerifyShop)).Methods("POST")
 	// Item handlers
 	router.Handle("/items", handlers.Adapt(handlers.Auth, handlers.AddItem)).Methods("POST")
 	router.Handle("/items", handlers.Adapt(handlers.Auth, handlers.GetAllItems)).Methods("GET")
