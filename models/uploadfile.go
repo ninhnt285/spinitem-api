@@ -1,4 +1,4 @@
-package uploadfile
+package models
 
 import (
 	"io"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/rs/xid"
 
-	"../../helpers/config"
+	"../helpers/config"
 )
 
 // ResizeOption save option of resize process

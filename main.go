@@ -28,7 +28,8 @@ func main() {
 	// Shop handlers
 	router.Handle("/shops", handlers.Adapt(handlers.Auth, handlers.GetAllShops)).Methods("GET")
 	router.Handle("/shops", handlers.Adapt(handlers.Auth, handlers.AddShop)).Methods("POST")
-	router.Handle("/shops/verify/{platform}", handlers.Adapt(handlers.Auth, handlers.VerifyShop)).Methods("POST")
+	router.Handle("/shops/callback/{platform}", handlers.Adapt(handlers.Auth, handlers.CallbackShop)).Methods("POST")
+	router.Handle("/shops/{id}", handlers.Adapt(handlers.Auth, handlers.GetShop)).Methods("GET")
 	// Item handlers
 	router.Handle("/items", handlers.Adapt(handlers.Auth, handlers.AddItem)).Methods("POST")
 	router.Handle("/items", handlers.Adapt(handlers.Auth, handlers.GetAllItems)).Methods("GET")

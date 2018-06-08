@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"../models/user"
+	"../models"
 )
 
 func TestGetToken(t *testing.T) {
-	user := user.User{ID: "123456"}
+	user := models.User{ID: "123456"}
 	token, err := getToken(user)
 	fmt.Println(token)
 	if err != nil {

@@ -1,4 +1,4 @@
-package item
+package models
 
 import (
 	"errors"
@@ -6,9 +6,7 @@ import (
 
 	"gopkg.in/mgo.v2/bson"
 
-	"../../helpers/config"
-	"../../models"
-	imageModel "../image"
+	"../helpers/config"
 )
 
 // Item includes info and all images data
@@ -22,15 +20,15 @@ type Item struct {
 }
 
 const (
-	collectionName = "item"
+	itemCollectionName = "item"
 )
 
 // Add new item to DB
 func (item *Item) Add() error {
-	dbSession := models.Session.Clone()
+	dbSession := DBSession.Clone()
 	defer dbSession.Close()
 	conf := config.GetInstance()
-	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
+	coll := dbSession.DB(conf.MongoDatabase).C(itemCollectionName)
 	// Validate fields
 	if item.ImageIds == nil {
 		item.ImageIds = []bson.ObjectId{}
@@ -43,10 +41,10 @@ func (item *Item) Add() error {
 
 // Update an existed item
 func (item *Item) Update(updateItem Item) error {
-	dbSession := models.Session.Clone()
+	dbSession := DBSession.Clone()
 	defer dbSession.Close()
 	conf := config.GetInstance()
-	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
+	coll := dbSession.DB(conf.MongoDatabase).C(itemCollectionName)
 	// Compare values
 	if updateItem.Title != "" {
 		item.Title = updateItem.Title
@@ -67,12 +65,12 @@ func (item *Item) Update(updateItem Item) error {
 
 // Delete item by id
 func (item *Item) Delete() error {
-	dbSession := models.Session.Clone()
+	dbSession := DBSession.Clone()
 	defer dbSession.Close()
 	conf := config.GetInstance()
-	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
+	coll := dbSession.DB(conf.MongoDatabase).C(itemCollectionName)
 	// Remove all images first
-	images, err := imageModel.GetAllImages(item.ID.Hex())
+	images, err := GetAllImages(item.ID.Hex())
 	for _, image := range images {
 		image.Delete()
 	}
@@ -84,12 +82,12 @@ func (item *Item) Delete() error {
 	return nil
 }
 
-// GetByID get an item by id
-func GetByID(id string) (*Item, error) {
-	dbSession := models.Session.Clone()
+// GetItem get an item by id
+func GetItem(id string) (*Item, error) {
+	dbSession := DBSession.Clone()
 	defer dbSession.Close()
 	conf := config.GetInstance()
-	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
+	coll := dbSession.DB(conf.MongoDatabase).C(itemCollectionName)
 	// Convert id to bson.ObjectId
 	if !bson.IsObjectIdHex(id) {
 		return nil, errors.New("Item ID is invalid")
@@ -104,12 +102,12 @@ func GetByID(id string) (*Item, error) {
 	return &item, nil
 }
 
-// GetAll get all items of user
-func GetAll(userID string) ([]Item, error) {
-	dbSession := models.Session.Clone()
+// GetAllItems get all items of user
+func GetAllItems(userID string) ([]Item, error) {
+	dbSession := DBSession.Clone()
 	defer dbSession.Close()
 	conf := config.GetInstance()
-	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
+	coll := dbSession.DB(conf.MongoDatabase).C(itemCollectionName)
 	// Convert id to bson.ObjectId
 	if !bson.IsObjectIdHex(userID) {
 		return nil, errors.New("User ID is invalid")

@@ -2,4 +2,6 @@ spinitem
 !public/index.html
 public/images/*
 !public/images/index.html
+public/videos/*
+!public/videos/index.html
 settings/config.toml

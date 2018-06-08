@@ -13,10 +13,10 @@ import (
 
 	"../helpers/config"
 	"../helpers/validation"
-	userModel "../models/user"
+	"../models"
 )
 
-func getToken(user userModel.User) (string, error) {
+func getToken(user models.User) (string, error) {
 	cf := config.GetInstance()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id":  user.ID,
@@ -71,7 +71,7 @@ var Auth http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 var Login http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	// Parse user from JSON
-	var user userModel.UserFull
+	var user models.UserFull
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -87,7 +87,7 @@ var Login http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Try to get user
-	existedUser, err := userModel.GetByEmailOrUsername(user.Email)
+	existedUser, err := models.GetUserByEmailOrUsername(user.Email)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Email or password is invalid")
 		return
@@ -111,7 +111,7 @@ var Login http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 var Register http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	// Parse new user from JSON
-	var user userModel.UserFull
+	var user models.UserFull
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return

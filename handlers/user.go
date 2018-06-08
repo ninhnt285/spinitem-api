@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 
-	"../models/user"
+	"../models"
 )
 
 // GetUser return user by id
@@ -26,7 +26,7 @@ var GetUser http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		userID = tokenUserID.(string)
 	}
 
-	user, err := user.GetByID(userID)
+	user, err := models.GetUser(userID)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return

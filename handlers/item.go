@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2/bson"
 
-	itemModel "../models/item"
-	"github.com/gorilla/mux"
+	"../models"
 )
 
 // AddItem handle for POST /items
@@ -20,7 +20,7 @@ var AddItem http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Parse item from JSON
-	var item itemModel.Item
+	var item models.Item
 	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -42,7 +42,7 @@ var GetItem http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	itemID := params["id"]
 
-	item, err := itemModel.GetByID(itemID)
+	item, err := models.GetItem(itemID)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -60,12 +60,12 @@ var GetAllItems http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	// Get all items
-	items, err := itemModel.GetAll(userID)
+	items, err := models.GetAllItems(userID)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	respondWithJSON(w, http.StatusOK, map[string][]itemModel.Item{"items": items})
+	respondWithJSON(w, http.StatusOK, map[string][]models.Item{"items": items})
 }
 
 // UpdateItem handle PUT /items/{id}
@@ -81,7 +81,7 @@ var UpdateItem http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 	// Get itemId
 	params := mux.Vars(r)
 	itemID := params["id"]
-	item, err := itemModel.GetByID(itemID)
+	item, err := models.GetItem(itemID)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -92,7 +92,7 @@ var UpdateItem http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Parse item from JSON
-	var updateItem itemModel.Item
+	var updateItem models.Item
 	if err := json.NewDecoder(r.Body).Decode(&updateItem); err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -120,7 +120,7 @@ var DeleteItem http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 	// Get Item
 	params := mux.Vars(r)
 	itemID := params["id"]
-	item, err := itemModel.GetByID(itemID)
+	item, err := models.GetItem(itemID)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -136,6 +136,5 @@ var DeleteItem http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusUnauthorized, err.Error())
 		return
 	}
-
 	respondWithJSON(w, http.StatusOK, item)
 }

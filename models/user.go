@@ -1,4 +1,4 @@
-package user
+package models
 
 import (
 	"errors"
@@ -6,8 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/mgo.v2/bson"
 
-	"../../helpers/config"
-	"../../models"
+	"../helpers/config"
 )
 
 // User is user model
@@ -24,16 +23,15 @@ type UserFull struct {
 	Password string `bson:"password" json:"password"`
 }
 
-const collectionName = "user"
+const userCollectionName = "user"
 
 // Add new user to DB
 // Note: Only new user can add
 func (user *UserFull) Add() error {
-	dbSession := models.Session.Clone()
+	dbSession := DBSession.Clone()
 	defer dbSession.Close()
 	conf := config.GetInstance()
-	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
-
+	coll := dbSession.DB(conf.MongoDatabase).C(userCollectionName)
 	// Make sure user is not existed
 	existedUser := UserFull{}
 	err := coll.Find(bson.M{"$or": []bson.M{bson.M{"username": user.Username}, bson.M{"email": user.Email}}}).One(&existedUser)
@@ -41,63 +39,54 @@ func (user *UserFull) Add() error {
 		err = errors.New("Email or Username is existed")
 		return err
 	}
-
 	// Create password by Bcrypt
 	newPw, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 	if err != nil {
 		return err
 	}
 	user.Password = string(newPw)
-
 	// Save new user to DB
 	user.ID = bson.NewObjectId()
 	err = coll.Insert(user)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
-// GetByEmailOrUsername get user by email, password
-func GetByEmailOrUsername(email string) (*UserFull, error) {
-	dbSession := models.Session.Clone()
+// GetUserByEmailOrUsername get user by email, password
+func GetUserByEmailOrUsername(email string) (*UserFull, error) {
+	dbSession := DBSession.Clone()
 	defer dbSession.Close()
-
 	conf := config.GetInstance()
-	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
-
+	coll := dbSession.DB(conf.MongoDatabase).C(userCollectionName)
+	// Find user by email
 	var user UserFull
 	err := coll.Find(bson.M{"email": email}).One(&user)
 	if err != nil {
 		return nil, err
 	}
-
 	return &user, nil
 }
 
-// GetByID get user by id
-func GetByID(id string) (*User, error) {
-	dbSession := models.Session.Clone()
+// GetUser get user by ID
+func GetUser(id string) (*User, error) {
+	dbSession := DBSession.Clone()
 	defer dbSession.Close()
-
 	conf := config.GetInstance()
-	coll := dbSession.DB(conf.MongoDatabase).C(collectionName)
-
+	coll := dbSession.DB(conf.MongoDatabase).C(userCollectionName)
+	// Convert id to ObjectID
 	if !bson.IsObjectIdHex(id) {
 		return nil, errors.New("User ID is invalid")
 	}
 	userID := bson.ObjectIdHex(id)
-
+	// Get User
 	var user User
 	err := coll.FindId(userID).One(&user)
 	if err != nil {
 		return nil, err
 	}
-
 	return &user, nil
 }
 
-// AllUsers get all users
-func AllUsers() ([]*User, error) {
+// GetAllUsers return all users
+func GetAllUsers() ([]*User, error) {
 	return nil, nil
 }
